@@ -1,0 +1,10 @@
+{
+  "navigationBarTitleText": "课程详情",
+  "navigationBarTextStyle": "white",
+
+  "navigationBarBackgroundColor": "#4372DA",
+  "usingComponents":{
+      "i-icon": "/static/icon/index"
+  
+  }
+}

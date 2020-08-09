@@ -1,0 +1,53 @@
+{
+  "pages": [ 
+    "pages/index/main",
+    "pages/index/children/navClass/main",
+    "pages/index/children/showAllCourse/main",
+    "pages/index/children/article/main",
+    "pages/index/children/creatKindergarten/main",
+    "pages/course/main",
+    "pages/course/children/courseDetail/main",
+    "pages/mine/main",
+    "pages/mine/children/switchIdentity/main",
+    "pages/mine/children/seeMyEvaluation/main",
+    "pages/mine/children/manageKindergarten/main",
+    "pages/mine/children/courseRecommand/main",
+    "pages/mine/children/studyProgress/main",
+    "pages/mine/children/studyProgress/seeMore/main",
+    "pages/mine/children/studyProgress/seeStudyDetail/main",
+    "pages/mine/children/problemFeedback/main",
+    "pages/mine/children/aboutUs/main",
+    "pages/mine/children/phoneAuthentication/main",
+    "pages/mine/children/inviteNewMember/main"
+  
+  ],
+  "window": {
+    "navigationBarBackgroundColor": "#6882F4"
+},
+  "tabBar": {
+    "color": "#7E828C",
+    "selectedColor": "#2164C2",
+    "position": "bottom",
+    "list": [
+        {
+            "pagePath": "pages/index/main",
+            "text": "首页",
+            "iconPath": "/static/imgs/tabbar/home.png",
+            "selectedIconPath": "/static/imgs/tabbar/home_selected.png"
+        },
+        {
+            "pagePath": "pages/course/main",
+            "text": "课程",
+            "iconPath": "/static/imgs/tabbar/course.png",
+            "selectedIconPath": "/static/imgs/tabbar/course_selected.png"
+        },
+        {
+            "pagePath": "pages/mine/main",
+            "text": "我的",
+            "iconPath": "/static/imgs/tabbar/mine.png",
+            "selectedIconPath": "/static/imgs/tabbar/mine_selected.png"
+        }
+    ]
+  }
+ 
+}

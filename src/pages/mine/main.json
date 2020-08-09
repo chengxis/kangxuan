@@ -1,0 +1,8 @@
+{
+ 
+  "usingComponents":{
+      "i-icon": "/static/icon/index"
+  
+  },
+  "navigationStyle": "custom"
+}

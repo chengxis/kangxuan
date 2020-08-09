@@ -1,0 +1,9 @@
+{   
+  "navigationBarTitleText": "请填写幼儿园相关信息",
+  "navigationBarTextStyle": "white",
+  
+  "usingComponents":{
+    
+  },
+  "enablePullDownRefresh":true
+}

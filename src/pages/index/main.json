@@ -1,0 +1,9 @@
+{   
+  "navigationBarTitleText": "首页",
+  "navigationBarTextStyle": "white",
+  
+  "usingComponents":{
+      "i-icon": "/static/icon/index"
+  },
+  "enablePullDownRefresh":true
+}

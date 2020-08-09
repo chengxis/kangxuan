@@ -1,0 +1,195 @@
+[
+        
+          
+  {
+    "id":1,
+    "type":"线上课",
+    "week":"每周二",
+    "name":"园长管理成长营",
+    "time":"每周二晚7：30",
+    "describtion":"每周一节，切实提升园长专业能力",
+    "people":"218人开通",
+    "price":"￥980/年",
+    "pic":"https://cdn.sc-edu.com/img/2020/07/30/17/a43dd2016e9a88ed62f59ff1a0fea589.png",
+    "isLove":false,
+    "isShowTime":true,
+    "isCoursePackage":true,
+    "isBuy":false,
+    "learnProgress":0
+
+  }
+
+,
+
+  {
+      "id":2,
+      "type":"直播课",
+      "week":"每周三",
+      "name":"教师管理成长营",
+      "time":"每周三晚6：30",
+      "describtion":"每周一节，切实提升教师专业能力",
+      "people":"218人开通",
+      "price":"￥980/年",
+      "pic":"https://cdn.sc-edu.com/img/2020/07/30/17/87f2baa0601005ae1466896ff5f81cdf.png",
+      "isLove":false,
+      "isShowTime":true,
+      "isCoursePackage":false,
+      "isBuy":true,
+      "learnProgress":1
+
+  }
+,
+
+  {
+    "id":3,
+    "type":"课程包",
+    "week":"每周二",
+    "name":"园长管理成长营",
+    "time":"每周二晚7：30",
+    "describtion":"每周一节，切实提升园长专业能力",
+    "people":"218人开通",
+    "price":"￥980/年",
+    "pic":"https://cdn.sc-edu.com/img/2020/07/30/17/a43dd2016e9a88ed62f59ff1a0fea589.png",
+    "isLove":false,
+    "isShowTime":true,
+    "isCoursePackage":true,
+    "isBuy":false,
+    "learnProgress":0.4
+  }
+
+,
+
+  {
+    "id":2,
+    "type":"直播课",
+    "week":"每周三",
+    "name":"教师管理成长营",
+    "time":"每周三晚6：30",
+    "describtion":"每周一节，切实提升教师专业能力",
+    "people":"218人开通",
+    "price":"￥980/年",
+    "pic":"https://cdn.sc-edu.com/img/2020/07/30/17/87f2baa0601005ae1466896ff5f81cdf.png",
+    "isLove":false,
+    "isShowTime":true,
+    "isCoursePackage":false,
+    "isBuy":false,
+    "learnProgress":0.4
+  }
+
+,
+
+
+{
+  "id":1,
+  "type":"面授课",
+  "week":"每周二",
+  "name":"落地深度训练营",
+  "time":"每周二晚7：30",
+  "describtion":"每周一节，切实提升园长专业能力",
+  "people":"218人开通",
+  "price":"￥980/年",
+  "pic":"https://cdn.sc-edu.com/img/2020/07/30/17/a43dd2016e9a88ed62f59ff1a0fea589.png",
+  "isLove":false,
+  "isShowTime":true,
+  "isCoursePackage":false,
+  "isBuy":true,
+  "learnProgress":0.4
+}
+
+,
+
+{
+  "id":2,
+  "type":"面授课",
+  "week":"每周三",
+  "name":"专家工作坊",
+  "time":"每周三晚6：30",
+  "describtion":"每周一节，切实提升教师专业能力",
+  "people":"218人开通",
+  "price":"￥980/年",
+  "pic":"https://cdn.sc-edu.com/img/2020/07/30/17/87f2baa0601005ae1466896ff5f81cdf.png",
+  "isLove":false,
+  "isShowTime":true,
+  "isCoursePackage":false,
+  "isBuy":true,
+  "learnProgress":1
+}
+,
+
+
+{
+    "id":1,
+    "type":"ai推荐",
+    "week":"每周二",
+    "name":"园长管理成长营",
+    "time":"每周二晚7：30",
+    "describtion":"每周一节，切实提升园长专业能力",
+    "people":"218人开通",
+    "price":"￥980/年",
+    "pic":"https://cdn.sc-edu.com/img/2020/07/30/17/a43dd2016e9a88ed62f59ff1a0fea589.png",
+    "isLove":false,
+    "isShowTime":true,
+    "isCoursePackage":false,
+    "isBuy":false,
+    "learnProgress":0
+  }
+
+,
+
+  {
+    "id":2,
+    "type":"ai推荐",
+    "week":"每周二",
+    "name":"园长管理成长营",
+    "time":"每周二晚7：30",
+    "describtion":"每周一节，切实提升园长专业能力",
+    "people":"218人开通",
+    "price":"￥980/年",
+    "pic":"https://cdn.sc-edu.com/img/2020/07/30/17/87f2baa0601005ae1466896ff5f81cdf.png",
+    "isLove":false,
+    "isShowTime":true,
+    "isCoursePackage":false,
+    "isBuy":false,
+    "learnProgress":0
+  }
+
+,
+
+  {
+    "id":1,
+    "type":"线上商城",
+    "week":"每周二",
+    "name":"园长管理成长营",
+    "time":"每周二晚7：30",
+    "describtion":"每周一节，切实提升园长专业能力",
+    "people":"218人开通",
+    "price":"￥980/年",
+    "pic":"https://cdn.sc-edu.com/img/2020/07/30/17/a43dd2016e9a88ed62f59ff1a0fea589.png",
+    "isLove":false,
+    "isShowTime":true,
+    "isCoursePackage":false,
+    "isBuy":false,
+    "learnProgress":0
+  }
+
+,
+
+  {
+   "id":2,
+    "type":"线上商城",
+    "week":"每周二",
+    "name":"园长管理成长营",
+    "time":"每周二晚7：30",
+    "describtion":"每周一节，切实提升园长专业能力",
+    "people":"218人开通",
+    "price":"￥980/年",
+    "pic":"https://cdn.sc-edu.com/img/2020/07/30/17/a43dd2016e9a88ed62f59ff1a0fea589.png",
+    "isLove":false,
+    "isShowTime":true,
+    "isCoursePackage":false,
+    "isBuy":true,
+    "learnProgress":0
+  }
+
+
+]
