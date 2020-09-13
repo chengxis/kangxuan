@@ -1,68 +1,87 @@
 <template>
   <div id="container">
-    <SearchBar></SearchBar>
-    <NavClassList :cCourseItem="courseItem"></NavClassList>
-    <!-- <div class="test" >{{courseItem}}</div> -->
-
-      
+    <div v-if="courseTypeNumber !== 5?true:false">
+      <SearchBar></SearchBar>
+      <NavClassList :cCourseItem="courseItem"></NavClassList>
+    </div>
+    <!-- 如果type是直播课则进入直播课-->
+    <div v-if="courseTypeNumber === 5?true:false" >
+      <button @click="enterLive(item)" v-for="(item,index) in roomId" :key="index">
+        进入{{item}}号直播间
+      </button>
+      <navigator 
+      :url="'plugin-private://wx2b03c6e691cd7370/pages/live-player-plugin?room_id='+roomId+'&custom_params='+customParams">
+      </navigator>
+    </div>
+    
+         
   </div>
 </template>
 <script>
 //:cCourseItem="courseItem"
 import SearchBar from '../../../../components/search_bar/SearchBar'
 import NavClassList from '../../../../components/nav_class_list/NavClassList'
+import request from '../../../../lib/utils/request'
 export default { 
   components: {
     SearchBar,
-    NavClassList
+    NavClassList,
+    
   },
 
   data () {
    return{
       courseType: '',
       courseTypeText: '',
-      courseItem: []
-   }
-  
+      courseItem: [],
+      roomId:[8,9,10,11,12,13,14,15,16,17],//直播的房间号
+      customParams:'',
+      courseTypeNumber:''
+   }  
 
   },
-  computed:{
-
+  methods:{
+    enterLive(roomId){
+    // console.log("进入直播间",roomId)
+    let customParams = encodeURIComponent(JSON.stringify({ path:'pages/index/children/navClass', pid: 1 }))
+    wx.navigateTo({
+      url: `plugin-private://wx2b03c6e691cd7370/pages/live-player-plugin?room_id=${roomId}&custom_params=${customParams}`
+    })
+    }
 
   },
-  mounted () {
-
-    this.courseType = this.$mp.query.tid
-
-    console.log("页面传值type",this.courseType)
-    if(this.courseType==1) this.courseTypeText = "线上课"
-    else if(this.courseType==2) this.courseTypeText = "直播课"
-    else if(this.courseType==3) this.courseTypeText = "面授课"
-    else if(this.courseType==4) this.courseTypeText = "ai推荐"
-    else if(this.courseType==5) this.courseTypeText = "线上商城"
+  async mounted () {
+    this.courseType = this.$mp.query.type
+    // console.log("页面传值type",this.courseType)
+    if(this.courseType === '线上课') this.courseTypeNumber = 1
+    else if(this.courseType === '直播课') this.courseTypeNumber = 2
+    else if(this.courseType === '面授课') this.courseTypeNumber = 3
+    else if(this.courseType === 'ai推荐') this.courseTypeNumber = 4
+    else this.courseTypeNumber = 5
+   
 
     wx.setNavigationBarTitle({
-      title: this.courseTypeText
+      title: this.courseType
     })
 
-    var that = this
-    wx.request({
-        url: 'https://wx.sc-edu.com/knsh/courselist/type/',
-        method:'POST',
-        header:{
-          'content-type':"application/x-www-form-urlencoded"
-        },
-        data: {
-          type: that.courseType,
-          api_token: "8c1eIPCvBusNPV2vpDEleaBNDSHlpephjhxy2njk"
-        },
-        success(res){       
-          console.log(res)        
-          that.courseItem = res.data.data.list;
-        }
-    }) 
+   
 
-    
+    let current_data = {
+      api_token:this.$global.token,
+      type: this.courseTypeNumber,
+    }
+    console.log(current_data)
+    let information = await request('/courselist/type/',current_data,'POST')
+    console.log("测试这里",information)
+    //对title字数做一个判断，若超过了8，则后面用...拼接
+    for(let i of information.data.list){
+      // console.log(i.title.length >= 8)
+      if(i.title.length >= 9){
+        i.title = i.title.substring(0,8) + '...'
+      }
+    }    
+    this.courseItem = information.data.list;
+  
   }
 }
 </script>
@@ -82,6 +101,19 @@ export default {
     background-color: pink;
     top: 800rpx;
   }
+  button{
+    width: 686rpx;
+    line-height: 88rpx;
+    border-radius: 4rpx;
+    background: #2570D9;
+    color: #ffffff;
+    font-family: Ping Fang SC;
+    font-size: 32rpx;
+    font-weight: 550;
+    text-align: center;
+    margin-bottom: 32rpx;
+  }
+
   
 
 </style>

@@ -1,64 +1,126 @@
 <template>
   <div id="container">
-    <div class="course">
+    <div class="course" v-if="isHasCourse">
       <ul class="course-list" >
         <li class="course-item" v-for="(item,index) in purchaseCourse" :key="index">
-          <div class="click-area" @tap="seeCourseDetail(item)"></div>
+          <div class="click-area" @tap="seeCourseDetail(item.course_id)"></div>
           <div class="course-show">
-            <img class="img-left" :src="item.pic"> 
+            <img class="img-left" :src="item.img_url"> 
             <span class="course-type">{{item.type}}</span>
           </div>
-          <div class="course-detail" >
-            <span class="course-name pingFang_sc">{{item.week}} | {{item.name}}</span>
-            <!-- isShowTime用来控制是否显示时间和描述信息，不显示的话则显示进度条-->
-            <span class="course-time pingFang_sc" v-if="item.isShowTime">{{item.time}}</span>
-            <span class="course-describtion" v-if="item.isShowTime">{{item.describtion}}</span>
-            <div class="progress-bar" v-if="item.isShowProgress">
-              <span class="progress-bar-text">已学{{item.learnProgress*100}}%</span>
-              <span class="progress-bar-frame"></span>
-              <span class="progress-bar-learned" :style="'width:'+item.learnProgress*244+'rpx'"></span>
-              <img class="completed" v-if="item.learnProgress==1" src="https://cdn.sc-edu.com/img/2020/07/30/17/de31b320d8a9e13b087615ce7aa9ea1c.png">
+          <div class="course-detail">
+            <span class="course-name ">{{item.title}}</span>
+            <div class="course-information">
+              <div class="benefit">{{item.abstract}}</div>   
+              <img class="completed" v-if="item.is_over===1" src="https://cdn.sc-edu.com/img/2020/07/30/17/de31b320d8a9e13b087615ce7aa9ea1c.png">
+              <div class="is-learning">{{item.learn_num}}位教师在学</div>
             </div>
             <span class="course-people">{{item.people}}</span>
-            <span class="course-price">{{item.price}}</span>
-            <div class="expand-select-area" @tap=handleLove(item)>
-              <span class="iconfont-hellowlove"  v-show="!item.isLove">&#xe606;</span>
-              <span class="iconfont-solidlove" v-show="item.isLove">&#xe60e;</span>
-            </div>
-          
+            <span class="course-price">￥{{item.price}}/年</span>
+            <div class="expand-select-area" @tap=handleLove(item,index)>
+              <img src="https://cdn.sc-edu.com/img/2020/09/03/10/ce9e78e105e98f68b5ce33872acf8ea5.png"
+              class="iconfont-hellowlove" v-show="!item.is_prefer">
+              <img src="https://cdn.sc-edu.com/img/2020/09/03/10/80011ac1c2870f54a0b1a1c17dc8d051.png"
+              class="iconfont-solidlove" v-show="item.is_prefer">
+            </div>          
           </div>
         </li>
-        <!-- <li class="course-item"></li> -->
       </ul>
-    </div>   
+    </div> 
+    <div class="none-course" v-if="!isHasCourse">
+      <img src="https://cdn.sc-edu.com/img/2020/08/14/17/82e7731b458a0eca27dcfba862115d8b.png" alt="">
+      <div class="none-describe">您暂无已购课程</div>
+      <div class="evaluate-button" @click="gotoRecommand">去查看课程推荐</div>
+    </div>
   </div> 
 </template>
 <script>
-import purchaseCourseData from '../../../../../static/purchaseCourseData.json'
+import request from '../../../../lib/utils/request'
 export default {
   data(){
     return{
-      purchaseCourse:[]
+      purchaseCourse:[],
+      isHasCourse:''
 
     }
   },
   mounted(){
-    this.purchaseCourse = purchaseCourseData
   },
   methods:{
-    handleLove(item){
-      console.log("收藏或取消收藏",item)
-      item.isLove = !item.isLove
+    async handleLove(item){
+      // console.log("收藏或取消收藏",item)
+      var requestUrl = ''
+      if(item.is_prefer === 1){
+        item.is_prefer = 0
+        requestUrl = '/prefer/del/'   
+      }else{
+        item.is_prefer = 1
+        requestUrl = '/prefer/add/'
+      }
+      let current_data = {
+        api_token:this.$global.token,
+        course_id: item.course_id,
+      }
+      let information = await request(requestUrl,current_data,'POST')  
     },
-    seeCourseDetail(courseDetailItem){
-      console.log("查看课程详情",courseDetailItem)
+    gotoRecommand(){
       wx.navigateTo({
-        // url:'/pages/mine/children/studyProgress/seeStudyDetail/main?courseDetailItem='+JSON.stringify(courseDetailItem)
-
-        url:'/pages/mine/children/studyProgress/seeStudyDetail/main?courseDetailItem='+JSON.stringify(courseDetailItem)
+        url: '/pages/mine/children/courseRecommand/main',
       })
+
+    },
+    seeCourseDetail(courseId){
+      wx.navigateTo({
+        url:'/pages/mine/children/studyProgress/seeStudyDetail/main?courseId='+JSON.stringify(courseId)
+      })
+    },
+    async getCourseList(){
+      let body_data = {
+        api_token:this.$global.token,
+        brand_id:this.$global.kingarten_info.brand_id
+        // api_token:"d174UtqqUFtMsF2zd58W4YJxUPzRbn2ACaSQOZe7",
+        // brand_id:10  
+      }
+      let result = await request('/brand/schedule/study/',body_data,'POST')
+      // console.log("测试点",result)
+      if(result.state === 1){
+        let courseList = result.data.list
+        if(courseList.length === 0){
+          this.isHasCourse = false
+        }
+        else{
+          this.isHasCourse = true
+          for(let i of courseList){
+            //将price变成整数
+            i.price = Number(i.price)
+            //title最多显示9个字符
+            if(i.title.length >= 9){
+              i.title = i.title.substring(0,8) + '...'
+            }
+            if(i.type === 1) i.type = '线上课'
+            else if(i.type === 2) i.type = '直播课'
+            else if(i.type === 3) i.type = '面授课'
+            else i.type = '课程包'
+          }
+        } 
+        this.purchaseCourse = courseList
+        // console.log(this.purchaseCourse)
+
+      }else if(result.state === 0){
+        wx.showToast({
+          title: result.message,
+          icon: 'none',
+          duration:2000
+        })
+      }else{
+        console.log("studyProgress获取课程列表失败")
+      }
     }
 
+  },
+  onShow(){
+    console.log("onshow")
+    this.getCourseList()
   }
   
 }
@@ -71,7 +133,8 @@ export default {
   .course-list{
     /* width: 100%; */
     width: 710rpx;
-    margin-left: -10rpx;
+    margin-left: 32rpx;
+    margin-top: 20rpx;
   } 
   .course-item{
     height: 220rpx;
@@ -147,44 +210,15 @@ export default {
     line-height: 32rpx;
     color: #828282;
     font-family: Ping Fang SC;
-    margin-bottom: 5rpx
-  }
-  .progress-bar{
-    height: 55rpx;
-    width: 260rpx;
-    /* background-color: pink; */
+    margin-bottom: 5rpx;
     position: relative;
-    margin-bottom: 10rpx;
+  }
+  .benefit{
+    font-family: Ping Fang SC;
+    font-size: 22rpx;
+    line-height: 32rpx;
+    color: #828282;
 
-  }
-  .progress-bar-text{
-    line-height: 34rpx;
-    font-size: 24rpx;
-    color: #2570D9;
-    font-weight: 500;
-  }
-  .progress-bar-frame{
-    position:absolute;
-    width: 244rpx;
-    height: 8rpx;
-    border-radius: 14rpx;
-    background:#EBF3FF;
-    display: block;
-    margin-top: 5rpx;
-    z-index: 2;
-
-  }
-  .progress-bar-learned{
-    display: inline-block;
-    /* width: 102rpx; */
-    height: 8rpx;
-    background: #2570D9;
-    border-radius: 14rpx;
-    position:absolute;
-    top: 48rpx;
-    z-index: 3;
-    left: 0rpx;
-    
   }
   .completed{
     display: block;
@@ -194,12 +228,19 @@ export default {
     /* background-color: pink; */
     position: absolute;
     border-radius: 50%;
-    top: -60rpx;
-    right: -80rpx;
-    /* background-image: '../../../static/imgs/course/complete.png';
-    background-image: '/static/imgs/course/complete.png'; */
-    /* background-image:url('../../../static/imgs/course/complete.png'); */
+    top: 30rpx;
+    left: 170rpx;
+    z-index: -9999;
+   
     
+  }
+  .is-learning{
+    font-family: Ping Fang SC;
+    font-size: 22rpx;
+    line-height: 30rpx;
+    color: #2570D9;
+    position: absolute;
+    bottom: 0rpx;
   }
   .course-people{
     width: 102rpx;
@@ -210,7 +251,6 @@ export default {
     font-family: Ping Fang SC;
   }
   .course-price{
-    width: 122rpx;
     height: 40rpx;
     font-family: Ping Fang SC;
     font-weight: 550;
@@ -218,27 +258,59 @@ export default {
     margin-left: 180rpx;
     color: #FB2A36;
     position: absolute;
-
+    bottom: 0rpx;
+    right: 32rpx;
   }
   .expand-select-area{
     width:50rpx;
     height: 50rpx;
     /* background-color: pink; */
     position: absolute;
-    top: 12rpx;
+    top: 20rpx;
     right: 30rpx;
-
   }
   .iconfont-hellowlove{
     position: absolute;
+    width: 50rpx;
+    height: 50rpx;
     right: 4rpx;
-    top: 4rpx;
-
   }
-
   .iconfont-solidlove{
     position: absolute;
-    right: 1rpx;
+    width: 50rpx;
+    height: 50rpx;
+    right: 4rpx;
+  }
+  .none-course{
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+  .none-course img{
+    width: 566rpx;
+    height: 398rpx;
+    margin-left: 92rpx;
+    margin-top: 32rpx;
+  }
+  .none-describe{
+    margin-top: 64rpx;
+    line-height: 44rpx;
+    font-size: 32rpx;
+    font-family: Ping Fang SC;
+    color: #333333;
+  }
+  .evaluate-button{
+    width: 686rpx;
+    height: 88rpx;
+    line-height: 88rpx;
+    background: #2570D9;
+    border-radius: 4rpx;
+    text-align: center;
+    color: #FFFFFF;
+    font-weight: 500;
+    font-size: 32rpx;
+    margin-top: 54rpx;
+
   }
 
 

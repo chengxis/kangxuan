@@ -1,0 +1,10 @@
+{
+  "navigationBarTitleText": "章节评测",
+  "navigationBarTextStyle": "white",
+
+  "navigationBarBackgroundColor": "#4372DA",
+  "usingComponents":{
+      "i-icon": "/static/icon/index"
+  
+  }
+}

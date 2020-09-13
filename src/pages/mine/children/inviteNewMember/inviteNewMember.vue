@@ -1,21 +1,27 @@
 <template>
     <div id="container">
       <img src="https://cdn.sc-edu.com/img/2020/08/09/13/abbbe2a475384e153f5ad63c2635d420.png" alt="">
-      <div class="invite-describtion">欢迎加入我的幼儿园{{brandId}}</div>
+      <div class="invite-describtion">欢迎加入{{kindergartenName}}</div>
       <div class="invite-describtion-more">和幼儿园的老师一起学习</div>
       <button class="login" 
       open-type="getUserInfo" 
-      @getuserinfo="getUserInfo"
-      v-if="!isAuthentication&&!isLogin">立即授权</button>
+      @getuserinfo="handleGetUserInfo"
+      v-show="!isAuthentication&&!isLogin">立即授权</button>
       <button class="login" 
       open-type="getPhoneNumber"
-      @getphonenumber="getPhoneNumber"
-      v-if="isAuthentication&&!isLogin">立即登录</button>
-      <div class="join" v-if="isAuthentication&&isLogin" @click="joinKindergarten">加入{{kindergartenName}}</div>
+      @getphonenumber="handlegetPhoneNumber"
+      v-show="isAuthentication&&!isLogin">立即登录</button>
+      <input class="teacher-name" placeholder="请在此处填写您的姓名" v-model="teacherName" v-if="isLogin&&isAuthentication">
+      <button class="join" 
+      v-show="isAuthentication&&isLogin"
+      :disabled="teacherName==''?true:false"
+      @click="tipToJoinKindergarten"
+      >立即加入</button>
     </div>
 </template>
 <script>
 import request from '../../../../utils/request'
+import {login,getUserInfo,getPhoneNumber,isAuthentication} from '../../../../lib/utils/certification'
 export default {
   data(){
     return{
@@ -23,108 +29,84 @@ export default {
       isAuthentication:false,
       brandId:'',
       kindergartenName:'',
-      kindergartenPic:''
+      kindergartenPic:'',
+      teacherName:'',//获取用户输入的姓名
+      inviteApiToken:'',//邀请人的api_token值
     }
   },
   methods:{
-    login(){
-      let that = this
-      wx.login({
-        success: function(res){
-          if(res.code){
-            that.$global.setCode(res.code)
-            wx.request({
-              url: 'https://wx.sc-edu.com/knsh/login/',
-              data: {
-                code:that.$global.code
-              },
-              method: 'POST', 
-              header: {'content-type': 'application/x-www-form-urlencoded'},       
-              success: function(res){
-                console.log(res.data)
-                that.$global.setToken(res.data.data.api_token)
-                that.$global.setUserNickName(res.data.data.nick_name)
-                that.$global.setUserAvatar(res.data.data.avatar)    
-              },
-              fail: function() {
-                console.log("获取数据失败")
-              }
-            })
-          }    
-        }
-      })
+    async handleGetUserInfo(e){
+      var isHasUserInfo = await getUserInfo(e)
+      // console.log(isHasUserInfo)
+      if(isHasUserInfo===true)
+        this.isAuthentication = true
     },
-    async getUserInfo(e){
-      var that = this
-      this.isAuthentication = true     
-      this.$global.setUserAvatar(e.mp.detail.userInfo.avatarUrl)
-      this.$global.setUserNickName(e.mp.detail.userInfo.nickName)
+    async handlegetPhoneNumber(res){
+      res.api_token = this.inviteApiToken
+      let isGetPhoneNumber = await(getPhoneNumber(res))
+      if(isGetPhoneNumber) this.isLogin = true  
+    },
+    async joinKindergarte(){
       let body_data = {
         api_token:this.$global.token,
-        avatar:this.$global.user_info.avatar,
-        nick_name:this.$global.user_info.nickName
-      }
-      let result = await request('/oauth/',body_data,'POST',{'content-type':'	application/x-www-form-urlencoded'})
-      // let result = await request('/oauth/',body_data,'POST',{'content-type':'application/x-www-form-urlencoded'})
-      console.log("登录将头像，昵称传到服务器",result)
-      
-      
-
-    },
-    async getPhoneNumber(res){
-      var that = this
-      console.log(res)
-      if(res.mp.detail.errMsg == 'getPhoneNumber:fail user deny'){
-        console.log('手机号拒绝授权')
-        wx.setStorage({
-        key: 'isBind',
-        data: false,
-      })
+        name:this.teacherName,
+        brand_id:this.brandId
+        // brand_id:32
+      } 
+      let result = await request('/teacher/apply/',body_data,'POST')
+      // console.log(result)
+      if(result.state === 1){
+        wx.showToast({
+          title:"申请加入幼儿园成功",
+          icon:'success',
+          duration:2000
+        })
+        setTimeout(()=>{
+          wx.switchTab({
+          url: '/pages/index/main'
+        })
+        },2000)
+      }else if(result.state === 0){
+        wx.showToast({
+          title:result.message,
+          icon:"none",
+          duration:2000
+        })
+        setTimeout(()=>{
+          wx.switchTab({
+          url: '/pages/index/main'
+        })
+        },1000)
       }else{
-        let result = await request('/phone/',
-        {
-          api_token:that.$global.token,
-          encryptedData:res.mp.detail.encryptedData,
-          iv:res.mp.detail.iv
-        },'POST',{'content-type': 'application/x-www-form-urlencoded'}) 
-        if(result.state == 1){
-          that.isLogin = true
-          console.log("授权成功")
-          that.$global.setIsBind(1)
-          that.$global.setUserPhone(result.data.mobile)
-          wx.setStorage({
-            key: 'isBind',
-            data: true,
-          })
-          this.joinKindergarten()
-      
-
-        }else{
-          wx.showToast({
-            title:'短信验证失败',
-            icon:'none'
-          })
-        }
+        console.log("inviteNewMember发送请求失败")
       }
-     
+
     },
-    joinKindergarten(){
-      console.log("点击")
+    tipToJoinKindergarten(){
+      var that = this
       wx.showModal({
         title: '提示',
         content: `是否加入${this.kindergartenName}`,
         success (res) {
           if (res.confirm) {
-            console.log('用户点击确定')
-            let body_data = {
-              //递交申请
-            }
+            that.joinKindergarte()          
           } else if (res.cancel) {
             console.log('用户点击取消')
           }
         }
       })
+    },
+    async init(){
+      //用于判断该用户是否是该机构的成员
+      let body_data = {
+        api_token:this.$global.token,
+        name:this.teacherName,
+        brand_id:this.brandId
+      }
+      let result = await request('teacher/apply_init/',body_data,'POST')
+
     }
+
 
   },
   mounted(){
@@ -132,43 +114,22 @@ export default {
     this.brandId = JSON.parse(this.$mp.query.brand_id)
     this.kindergartenName = JSON.parse(this.$mp.query.kindergartenName)
     this.kindergartenPic = JSON.parse(this.$mp.query.kindergartenPic)
-    // this.brandId = '14'
-    // this.kindergartenName = '康轩'
+    this.inviteApiToken = JSON.parse(this.$mp.query.inviteApiToken)
     wx.getUserInfo({
       success: function(res){
-      that.isAuthentication = true
+        that.isAuthentication = true
       }
     }) 
   },
-  onShow(){
-    var that = this
-    this.login()
-    //进入页面判断是否授权
-    wx.getSetting({
-      success: (res)=>{
-        console.log(res)
-          if(!res.authSetting['scope.userInfo']){
-              that.isAuthentication = false;
-              wx.setStorage({
-                key: 'isBind',
-                data: false,
-              })
-          }else{
-              that.isAuthentication = true;
-              wx.getStorage({
-                key: 'isBind',
-                success: function(res){
-                  // success
-                  if(res.data==true){
-                    that.isLogin = true
-                    // this.$global.kingarten_info.brand_id = this.brandId
-                  }
-                },
-               
-              })
-            }
-      },
-    }); 
+  async onShow(){
+    let isAuth = await isAuthentication(await login())
+    if(isAuth){
+      this.isAuthentication = true
+      this.isLogin = true
+    }else{
+      this.isAuthentication = false
+      this.isLogin = false
+    }
   }
   
 }
@@ -184,20 +145,20 @@ export default {
 }
 img{
   margin-top: 30rpx;
-  margin-bottom: 20rpx;
+  margin-bottom: 60rpx;
 }
 .invite-describtion{
-  color: #2570D9;
-  font-size: 30rpx;
+  color: #000000;
+  font-size: 32rpx;
   font-family: Ping Fang SC;
-  font-weight: 550;
-  margin-bottom: 30rpx;
+  font-weight: 600;
+  margin-bottom: 16rpx;
 }
 .invite-describtion-more{
   color: #828282;
-  font-size: 25rpx;
+  font-size: 24rpx;
   font-family: Ping Fang SC;
-  margin-bottom: 100rpx;
+  margin-bottom: 34rpx;
 }
 .login{
   width: 300rpx;
@@ -209,10 +170,29 @@ img{
   border-radius: 30rpx;
   font-size: 30rpx;
 }
+.teacher-name{
+  width: 622rpx;
+  height: 88rpx;
+  padding-left: 32rpx;
+  font-size: 32rpx;
+  line-height: 44rpx;
+  margin-bottom: 300rpx;
+  border: 2rpx solid #2570D9;
+  border-radius: 4rpx;
+  background: #FAFAFA;
+
+}
 .join{
-  font-size: 30rpx;
-  color: #2570D9;
-  text-decoration: underline;
+  width: 686rpx;
+  height: 88rpx;
+  background: #2570D9;
+  border-radius: 4rpx;
+  font-size: 32rpx;
+  line-height: 88rpx;
+  text-align: center;
+  font-weight: 600;
+  font-family: Ping Fang SC;
+  color: #FFFFFF;  
 }
 
 </style>

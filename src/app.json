@@ -1,29 +1,42 @@
 {
-  "pages": [ 
+  "pages": [
+    
     "pages/index/main",
+    "pages/index/children/search/main",
     "pages/index/children/navClass/main",
     "pages/index/children/showAllCourse/main",
     "pages/index/children/article/main",
     "pages/index/children/creatKindergarten/main",
     "pages/course/main",
     "pages/course/children/courseDetail/main",
+    "pages/course/children/courseDetailTwo/main",
+    "pages/course/children/courseTest/main",
+    "pages/course/children/Live/main",
     "pages/mine/main",
     "pages/mine/children/switchIdentity/main",
     "pages/mine/children/seeMyEvaluation/main",
     "pages/mine/children/manageKindergarten/main",
     "pages/mine/children/courseRecommand/main",
+    "pages/mine/children/courseRecommand/evaluateList/main",
+    "pages/mine/children/courseRecommand/evaluateDetail/main",
     "pages/mine/children/studyProgress/main",
     "pages/mine/children/studyProgress/seeMore/main",
     "pages/mine/children/studyProgress/seeStudyDetail/main",
     "pages/mine/children/problemFeedback/main",
     "pages/mine/children/aboutUs/main",
     "pages/mine/children/phoneAuthentication/main",
-    "pages/mine/children/inviteNewMember/main"
-  
+    "pages/mine/children/inviteNewMember/main",
+    "pages/mine/children/myRewardPoints/main",
+    "pages/common/paySuccess/main",
+    "pages/common/doEvaluate/main",
+    "pages/common/evaluateIndex/main" 
+  ],
+  "navigateToMiniProgramAppIdList": [
+    "wx8abaf00ee8c3202e"
   ],
   "window": {
     "navigationBarBackgroundColor": "#6882F4"
-},
+  },
   "tabBar": {
     "color": "#7E828C",
     "selectedColor": "#2164C2",
@@ -48,6 +61,12 @@
             "selectedIconPath": "/static/imgs/tabbar/mine_selected.png"
         }
     ]
-  }
+  },
+  "plugins": {
+    "live-player-plugin": {
+        "version": "1.1.8", 
+        "provider": "wx2b03c6e691cd7370" 
+    }
+}
  
 }

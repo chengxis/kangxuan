@@ -6,7 +6,7 @@
         <p class="contentTip">请输入您要修改的姓名</p>
         <input type="text" 
         placeholder="请输入姓名" 
-        class="nameStyle" v-model="name" 
+        class="nameStyle" v-model="name"
         maxlength="11"
         placeholder-style="margin-left:12rpx;color:#e2e2e2">
       </div>
@@ -72,7 +72,7 @@ export default {
   position: fixed;
   z-index: 9999;
   background: #fff;
-  margin: 300rpx 32rpx;
+  margin: 500rpx 32rpx;
   border-radius: 16rpx;
 }
 .modalContent {

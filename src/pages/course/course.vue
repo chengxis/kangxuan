@@ -7,10 +7,22 @@
       <span class="underline" :style="isLike?'left:408rpx':'310rpx'"></span>
     </div>
     <div class="showPurchaseCourse" v-show="!isLike">
+      <ListNone v-if="noPurchaseCourse"
+      :cdescribe="'您暂无购买课程'"
+      :cpng="'https://cdn.sc-edu.com/img/2020/08/14/17/82e7731b458a0eca27dcfba862115d8b.png'"
+      :curl="'/pages/index/children/showAllCourse/main'"
+      :cbtnDescrib="'去看看'"></ListNone>
       <NavClassList :cCourseItem="purchaseCourse" ></NavClassList>
+
     </div>
     <div class="showLikedCourse" v-show="isLike">
-      <NavClassList :cCourseItem="likeCourse"></NavClassList>
+      <ListNone v-if="noLikeCourse"
+      :cdescribe="'您暂无喜欢课程'"
+      :cpng="'https://cdn.sc-edu.com/img/2020/08/14/17/82e7731b458a0eca27dcfba862115d8b.png'"
+      :curl="'/pages/index/children/showAllCourse/main'"
+      :cbtnDescrib="'去看看'"></ListNone>
+      <NavClassList :cCourseItem="likeCourse" :cisLike="isLike"
+      @hanleNoCourse="handleNoCourse"></NavClassList>
     </div>
    
   </div>
@@ -21,35 +33,38 @@
 ////"navigationStyle": "custom",
 import SearchBar from '../../components/search_bar/SearchBar'
 import NavClassList from '../../components/nav_class_list/NavClassList'
-import purchaseCourseData from '../../../static/purchaseCourseData.json'
-import likeCourseData from '../../../static/likeCourseData.json'
+import request from '../../lib/utils/request'
+import ListNone from '../../components/list_none/ListNone'
 export default {
   components: {
     SearchBar,
-    NavClassList
+    NavClassList,
+    ListNone
   },
   data(){
     return{
       isLike:false,//判断用户是否点击了喜欢列表/已购列表
       likeCourse:[],
-      purchaseCourse:[]
+      purchaseCourse:[],
+      noPurchaseCourse:false,
+      noLikeCourse:false
     }
   },
   mounted(){
-    // this.likeCourse = likeCourseData
-    // this.purchaseCourse = purchaseCourseData
     this.init()
   },
   methods:{
     handleChoosePurchase(){
-      console.log("点击了已购")
       this.isLike = false
       this.init_purchase_list()
     },
     handleChooseLike(){
-      console.log("点击了喜欢")
-      this.isLike = true  
+      this.isLike = true
       this.init_like_list()    
+    },
+    handleNoCourse(){
+      this.noLikeCourse = true
+
     },
 
     // 获取已购和喜欢列表
@@ -59,52 +74,68 @@ export default {
     },
 
     // 获取已购列表
-    init_purchase_list(){
-      var that = this
-      wx.request({
-        url: 'https://wx.sc-edu.com/knsh/courselist/bought/',
-        method:'POST',
-        header:{
-          'content-type':"application/x-www-form-urlencoded"
-        },
-        data: {
-          api_token: "8c1eIPCvBusNPV2vpDEleaBNDSHlpephjhxy2njk",
-          brand_id: 1
-        },
-        success(res){       
-          console.log("已购课程",res) 
-          that.purchaseCourse = res.data.data.list
-          // 区分是否从已购课程列表进入
-          for(let index in that.purchaseCourse){
-            that.purchaseCourse[index].isPurchase = true         
-          }
-        }
-      })
+    async init_purchase_list(){
+      let current_data = {
+        api_token:this.$global.token,
+        brand_id:this.$global.kingarten_info.brand_id,
+      }
+      // console.log(current_data)
+      let information = await request('/courselist/bought/',current_data,'POST')
+      console.log("已购课程",information)
+      this.purchaseCourse = information.data.list
+      // 区分是否从已购课程列表进入
+      if(this.purchaseCourse.length === 0){
+        this.noPurchaseCourse = true
+      }else{
+        this.noPurchaseCourse = false
+        this.handleData(this.purchaseCourse,true)
+      }
+     
 
     },
 
     // 获取喜欢列表
-    init_like_list(){
-      var that = this
-      wx.request({
-        url: 'https://wx.sc-edu.com/knsh/courselist/prefer/',
-        method:'POST',
-        header:{
-          'content-type':"application/x-www-form-urlencoded"
-        },
-        data: {
-          api_token: "8c1eIPCvBusNPV2vpDEleaBNDSHlpephjhxy2njk",
-        },
-        success(res){       
-          console.log("收藏课程",res) 
-          that.likeCourse = res.data.data.list
+    async init_like_list(){
+      let current_data = {
+        api_token:this.$global.token,
+      }
+      let information = await request('/courselist/prefer/',current_data,'POST')
+      console.log("收藏课程",information)
+      this.likeCourse = information.data.list
+      console.log(this.likeCourse,this.likeCourse)
+      if(this.likeCourse.length === 0) this.noLikeCourse = true
+      else {
+        this.noLikeCourse = false
+        this.handleData(this.likeCourse,false)
+      }
+
+    },
+    handleData(data,purchase){
+      for(let i of data){
+        //若是已购课程，在列表后面加一个已购标识
+        if(purchase) {
+          i.isPurchase = true
+          i.percent = parseInt(i.percent)
         }
-      })
+        else i.isPurchase = false
+        if(i.type === '1') i.type_text = "线上课"
+        else if(i.type === '2') i.type_text = "直播课"
+        else if(i.type === '3') i.type_text = "面授课"
+        else i.type_text = "课程包"
+        if(i.title.length >= 9){
+          i.title = i.title.substring(0,8) + '...'
+        }
+      }
 
     }
+  },
+  onShow(){
+    // console.log("onshow")
+    if(this.$global.refresh){
+      this.init_like_list() 
 
-
-
+    }
+    this.init_purchase_list()
   }
 }
 </script>

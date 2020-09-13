@@ -3,26 +3,26 @@
     <div class="top-show">
       <span class="current-people">现有教师人数:</span>
       <span class="people-count">{{teaNumber}}</span>
-      <button class="invite-member" @click="inviteNewMember" open-type="share">邀请新成员</button>
+      <button class="invite-member" open-type="share">邀请新成员</button>
     </div>
     <div class="split-line"></div>
     <div class="apply-join">
-      <ul class="apply-join-list" >
-        <li class="apply-join-item" v-for="item in teaList" :key="item.user_id">
+      <ul class="apply-join-list" :style="isOnlyTeaList?'margin-top:-68rpx':''">
+        <li class="apply-join-item" v-for="item in applyList" :key="item.user_id">
           <img class="apply-join-pic" :src="item.avatar">
           <span class="apply-join-member-name">{{item.name}}</span>
-          <span class="apply-join-agree">同意</span>
-          <span class="apply-join-ignore">忽略</span>
+          <span class="apply-join-agree" @click="agreeJoin(item.user_id)">同意</span>
+          <span class="apply-join-ignore" @click="rejectJoin(item.user_id)">忽略</span>
         </li>
       </ul>
     </div>
     <div class="current-member">
       <ul class="current-member-list">
-        <li class="current-member-item" v-for="item in applyList" :key="item.user_id">
+        <li class="current-member-item" v-for="item in teaList" :key="item.user_id">
           <img class="apply-join-pic" :src="item.avatar">
-          <span class="apply-join-member-name">{{itme.name}}</span>
-          <span class="apply-join-agree" style="border:2rpx solid #2570D9;color:#2570D9;background:#FFFFFF">查看</span>
-          <span class="apply-join-ignore">删除</span>
+          <span class="apply-join-member-name">{{item.name}}</span>
+          <!-- <span class="apply-join-agree" style="border:2rpx solid #2570D9;color:#2570D9;background:#FFFFFF">查看</span> -->
+          <span class="apply-join-ignore" @click="deleteTeacher(item.user_id)">删除</span>
         </li>
       </ul>
     </div>
@@ -37,7 +37,8 @@ export default {
       kindergartenName:'',
       teaNumber:'',//当前已加入的教师人数
       teaList:[],//已加入教师的详细信息，包括头像和姓名
-      applyList:[]//申请加入教师的详细信息，包括头像和姓名
+      applyList:[],//申请加入教师的详细信息，包括头像和姓名
+      isOnlyTeaList:false
 
     }
   
@@ -45,7 +46,6 @@ export default {
   },
   methods:{
     async getTeacherList(){
-      console.log("执行")
       let body_data = {
         api_token:this.$global.token,
         brand_id:this.$global.kingarten_info.brand_id
@@ -53,7 +53,7 @@ export default {
       let teacherList = await request('/brand/staff/',body_data,'POST',{'content-type':'	application/x-www-form-urlencoded'})
       console.log("teacherList",teacherList)
       if(teacherList.state==0){
-        wx.wx.showToast({
+        wx.showToast({
           title: teacherList.message,
           icon: 'none'
         })
@@ -61,21 +61,114 @@ export default {
         this.teaNumber = teacherList.data.tea_num
         this.teaList = teacherList.data.tea_info
         this.applyList = teacherList.data.apply
+        console.log(this.applyList)
+        
+        if(this.applyList === null) {
+          this.isOnlyTeaList = true
+        }else{
+          this.isOnlyTeaList = false
+        }
+        console.log(this.isOnlyTeaList)
+        
       }else{
         console.log("获取信息失败！")
       }
 
     },
-    async getKingartenPic(){
+    async agreeJoin(teacher_id){
       let body_data = {
         api_token:this.$global.token,
-        brand_id:this.$global.kingarten_info.brand_id
+        brand_id:this.$global.kingarten_info.brand_id,
+        teacher_id:teacher_id  
       }
-      let kingartenPic = await request('/brand/invite/',body_data,'POST',{'content-type':'	application/x-www-form-urlencoded'})
-      // console.log(kingartenPic)
-      this.$global.setImage(kingartenPic.data.img)
-      console.log(this.$global.kingarten_info.img)
+      let result = await request('/teacher/agree/',body_data,'POST')
+      console.log(result)
+      if(result.state === 1){
+        wx.showToast({
+          title:result.message,
+          icon:'success',
+          duration:2000
+        })
+        this.getTeacherList()
+      }else if(result.state === 0){
+        wx.showToast({
+          title:result.message,
+          icon:'none',
+          duration:2000
+        })
+      }else{
+        console.log("manageKindergarten同意加入失败")
+      }
+
+    },
+    async rejectJoin(teacher_id){
+       let body_data = {
+        api_token:this.$global.token,
+        brand_id:this.$global.kingarten_info.brand_id,
+        teacher_id:teacher_id  
+      }
+      let result = await request('/teacher/reject/',body_data,'POST')
+      console.log(result)
+      if(result.state === 1){
+        wx.showToast({
+          title:"拒绝成功",
+          icon:'success',
+          duration:2000
+        })
+        this.getTeacherList()
+      }else if(result.state === 0){
+        wx.showToast({
+          title:result.message,
+          icon:'none',
+          duration:2000
+        })
+      }else{
+        console.log("manageKindergarten拒绝加入失败")
+      }
+
+    },
+    deleteTeacher(teacher_id){
+      var that = this
+      wx.showModal({
+        title: '提示',
+        content: '是否确定删除此教师',
+        success (res) {
+          if (res.confirm) {
+            console.log('用户点击确定')
+            that.doDelete(teacher_id)
+          } else if (res.cancel) {
+            console.log('用户点击取消')
+          }
+        }
+      })
+    },
+    async doDelete(teacher_id){
+      let body_data = {
+        api_token:this.$global.token,
+        brand_id:this.$global.kingarten_info.brand_id,
+        teacher_id:teacher_id  
+      }
+      let result = await request('/teacher/del/',body_data,'POST')
+      console.log(result)
+      if(result.state === 1){
+        wx.showToast({
+          title:"删除成功",
+          icon:'success',
+          duration:2000
+        })
+        this.getTeacherList()
+      }else if(result.state === 0){
+        wx.showToast({
+          title:result.message,
+          icon:'none',
+          duration:2000
+        })
+      }else{
+        console.log("manageKindergarten删除成员失败")
+      }
+
     }
+
   },
   onShareAppMessage: function(ops) {
     if (ops.from === "button") {
@@ -83,11 +176,12 @@ export default {
       console.log(ops.target);
     }
     return {
-      title: "快来加入我的幼儿园吧~~",//这里是定义转发的标题
+      title: `快来加入${this.$global.kingarten_info.title}`,//这里是定义转发的标题
       path: '/pages/mine/children/inviteNewMember/main?brand_id='
       +JSON.stringify(this.$global.kingarten_info.brand_id)
       +'&&kindergartenName='+JSON.stringify(this.$global.kingarten_info.title)
-      +'&&kindergartenPic='+JSON.stringify(this.$global.kingarten_info.pic),//这里是定义转发的地址
+      +'&&kindergartenPic='+JSON.stringify(this.$global.kingarten_info.pic)
+      +'&&inviteApiToken='+JSON.stringify(this.$global.api_token),//这里是定义转发的地址
       imageUrl:'https://cdn.sc-edu.com/img/2020/08/09/13/abbbe2a475384e153f5ad63c2635d420.png',
       success: function(res) {
         // 转发成功
@@ -115,7 +209,7 @@ export default {
     wx.setNavigationBarTitle({
       title: this.kindergartenName,
     })
-    this.getKingartenPic()
+    // this.getKingartenPic()
   },
   onShow(){
     this.getTeacherList()

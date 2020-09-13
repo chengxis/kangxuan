@@ -2,7 +2,7 @@
   <div id="container">
     <ul class="identityList">
       <li class="identityItem" 
-      @longpress="handleLongPress"
+      @longpress="handleLongPress(item)"
       @click="handleSwitchConstitude($event,item)" 
       v-for="(item,index) in constitudeList" 
       :key="item.brand_id"
@@ -33,7 +33,8 @@
   
 </template>
 <script>
-import request from '../../../../utils/request'
+import request from '../../../../lib/utils/request'
+import {login} from '../../../../lib/utils/certification'
 export default {
   data(){
     return{
@@ -43,19 +44,30 @@ export default {
     }
   },
   methods:{
-    handleLongPress(){
-      wx.showActionSheet({
+    handleLongPress(item){
+      let that = this
+      if(item.identity==='园长'){
+        wx.showActionSheet({
         itemList: ['修改','删除'],
         itemColor: '',
         success(res){
-          console.log(res.tapIndex)
-        }
-      })
+          // console.log(res.tapIndex)
+          if(res.tapIndex=='0') that.updateKingarten(item)
+          if(res.tapIndex=='1') that.deleteKingerten(item)
+        }})
+      }else{
+        wx.showActionSheet({
+        itemList: [`退出${item.title}`],
+        itemColor: '',
+        success(res){
+          if(res.tapIndex=='0') that.deleteKingerten(item)
+        }})
+      }
+   
 
 
     },
     createKindergarten(){
-      console.log("创建幼儿园")
       wx.navigateTo({
         url:'/pages/index/children/creatKindergarten/main'
       })
@@ -67,13 +79,12 @@ export default {
     //处理数据函数
     async getOwnConstitude(){
       //获取当前用户身份下所有的机构信息
-      console.log('当前方法执行')
       let current_data = {
         api_token:this.$global.token
         }
       let allConstitude = await request('/person/brand/',current_data,'POST',{'content-type':'application/x-www-form-urlencoded'})
-      console.log("返回的所有机构的信息",allConstitude.data)
-      if(allConstitude.state==1){
+      console.log("返回的所有机构的信息",allConstitude)
+      if(allConstitude.state===1){
         // console.log("执行")
         for(let i of allConstitude.data.list){
           if(i.type == 1){
@@ -102,41 +113,64 @@ export default {
         this.constitudeList.name = allConstitude.data.name
         console.log(this.constitudeList)
         this.isShowComplete = true
-
+      }else if(allConstitude.state===0) {
+        this.constitudeList = allConstitude.data
+        this.isShowComplete = true
       }
     },
     async switchConstitude(new_id){
       //将当前的幼儿园和要切换的幼儿园返给接口
       let current_data = {
         api_token:this.$global.token,
-        old_id:this.$global.kingarten_info.brand_id,
-        new_id:new_id
+        // old_id:this.$global.kingarten_info.brand_id,
+        brand_id:new_id//要切换的机构id
       }
       let newConstitude = await request('/brand/change/',current_data,'POST',{'content-type':'application/x-www-form-urlencoded'})
       this.$global.setBrandId(new_id)
       // console.log(new_id)
       console.log("newConstitude",newConstitude)
       if (newConstitude.state == 1){
-        console.log("这里执行了")
-        // wx.swichTab({      
-        //   url: '/pages/index/main'
-        // })
         wx.switchTab({
-          url: '/pages/mine/main',
-          success: function(res){
-            console.log(res)
-          },
-          fail: function() {
-            console.log("跳转失败")
-          }
+          url: '/pages/mine/main'
         })
-        //当用户切换机构，mine需要重新获取幼儿园信息，通过isSwitch判断是否需要向接口请求数据
-        wx.setStorage({
-          key: 'isSwitch',
-          data: true,
+        //当用户切换机构，mine需要重新获取幼儿园信息，通过判断是否需要向接口请求数据
+        this.$global.setGetBrandAgain(true)
+        this.$global.setGetLoginAgain(true)
+        
 
-        })
       } 
+    },
+    updateKingarten(item){
+      //将isUpdateKin设置为true，用于创建幼儿园接受发送过去的数据
+      this.$global.setisUpdateKin(true)
+      wx.navigateTo({
+       url:'/pages/index/children/creatKindergarten/main?kindergarten='+JSON.stringify(item)
+      })
+
+    },
+    async deleteKingerten(item){
+      // console.log(item)
+      let body_data = {
+        api_token:this.$global.token,
+        brand_id:item.brand_id
+      }
+      let result = await request('/person/del/',body_data,'POST')
+      if(result.state === 1){
+        wx.showToast({
+          title: '幼儿园删除成功',
+          icon: 'success',
+          duration: 2000
+          
+        })
+        //重新获取当前机构泪飙
+        this.getOwnConstitude()
+        //如果删除的机构是当前机构，则我的页面重新请求一下机构的信息和login数据
+        if(item.brand_id === this.$global.kingarten_info.brand_id){
+          login()
+          this.$global.setGetBrandAgain(true)
+        }
+      }
+
     }
   },
 
@@ -220,6 +254,7 @@ export default {
 
   }
   .identity-scale-stu{
+    color: #FFFFFF;
     position: absolute;
     top: -5rpx;
     right: 30rpx;
